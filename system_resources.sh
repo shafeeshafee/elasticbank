@@ -24,3 +24,5 @@ else
     echo "Resource usage is within acceptable limits."
     exit 0
 fi
+
+# Note: Exit codes are important in CI/CD pipelines because they signal whether a step has succeeded (exit code 0) or failed (non-zero exit code). This allows the pipeline to make decisions based on the outcome of each step.
