@@ -4,7 +4,7 @@
 cpu_usage=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
 
 # Memory
-mem_usage=$(free | awk '/Mem/{printf("%.2f"), $3/$2*100}')
+mem_usage=$(free | awk '/Mem/{printf("%.2f", $3/$2*100)}')
 
 # Storage
 disk_usage=$(df -h / | awk '/\// {print $(NF-1)}' | sed 's/%//')
