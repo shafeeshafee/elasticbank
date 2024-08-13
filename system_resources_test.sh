@@ -14,15 +14,40 @@ cpu_threshold=80
 mem_threshold=80
 disk_threshold=80
 
-# checks usage rates against the thresholds. result gets piped into `bc -l` which is a calculator that returns either 1 or 0 (True or False)
-if (( $(echo "$cpu_usage > $cpu_threshold" | bc -l) )) || 
-   (( $(echo "$mem_usage > $mem_threshold" | bc -l) )) || 
-   (( $(echo "$disk_usage > $disk_threshold" | bc -l) )); then
-    echo "Resource usage exceeds threshold!"
+# initialize a array to store resources that exceed the threshold
+exceeded_resources=()
+
+# check cpu
+if (( $echo "$cpu_usage > $cpu_threshold" | bc -l )); then
+    exceeded_resources+=("CPU (${cpu_usage}%)")
+fi
+
+# check memory
+if (( $echo "$mem_usage > $mem_threshold" | bc -l )); then
+    exceeded_resources+=("Memory (${mem_usage}%)")
+fi
+
+# check storage
+if (( $echo "$disk_usage > $disk_threshold" | bc -l )); then
+    exceeded_resources+=("Disc (${disk_usage}%)")
+fi
+
+# check if any resources go out their threshold bounds
+if [ ${#exceeded_resources[@]} -gt 0 ]; then
+    echo "Resource usage exceeds threshold bound!"
+    echo "Exceeded resources:"
+    for resource in "${exceeded_resources[@]}"; do
+        echo "- $resource"
+    done
     exit 1
 else
     echo "Resource usage is within acceptable limits."
+    echo "Current usage:"
+    echo "- CPU: ${cpu_usage}%"
+    echo "- Memory: ${mem_usage}%"
+    echo "- Disk: ${disk_usage}%"
     exit 0
 fi
+
 
 # Note: Exit codes are important in CI/CD pipelines because they signal whether a step has succeeded (exit code 0) or failed (non-zero exit code). This allows the pipeline to make decisions based on the outcome of each step.
