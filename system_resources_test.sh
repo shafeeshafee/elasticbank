@@ -10,9 +10,9 @@ mem_usage=$(free | awk '/Mem/{printf("%.2f"), $3/$2*100}')
 disk_usage=$(df -h / | awk '/\// {print $(NF-1)}' | sed 's/%//')
 
 # thresholds to set limit on usage
-cpu_threshold=70
-mem_threshold=70
-disk_threshold=70
+cpu_threshold=80
+mem_threshold=80
+disk_threshold=80
 
 # checks usage rates against the thresholds. result gets piped into `bc -l` which is a calculator that returns either 1 or 0 (True or False)
 if (( $(echo "$cpu_usage > $cpu_threshold" | bc -l) )) || 
