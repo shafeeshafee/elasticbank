@@ -1,9 +1,9 @@
 pipeline {
     agent any
     options {
-        timeout(time: 10, unit: 'MINUTES')  // Set a timeout for the entire pipeline
-        disableConcurrentBuilds()  // Prevent concurrent builds of the same job
-        buildDiscarder(logRotator(numToKeepStr: '5'))  // Keep only the last 5 builds
+        timeout(time: 10, unit: 'MINUTES')
+        disableConcurrentBuilds()  // prevents concurrent builds of the same job
+        buildDiscarder(logRotator(numToKeepStr: '5'))  // keep only the last 5 builds
     }
     stages {
         stage ('Build') {
@@ -38,6 +38,14 @@ pipeline {
                         }
                     }
                 }
+            }
+        }
+        stage ('Deploy') {
+            steps {
+                sh '''#!/bin/bash
+                source venv/bin/activate
+                eb create [enter-name-of-environment-here] --single
+                '''
             }
         }
     }
