@@ -1,5 +1,9 @@
 pipeline {
-  agent any
+    agent any
+    options {
+        timeout(time: 10, unit: 'MINUTES')  // set a timeout for the entire pipeline
+        disableConcurrentBuilds()  // prevent concurrent builds of the same job
+    }
     stages {
         stage ('Build') {
             steps {
@@ -13,11 +17,32 @@ pipeline {
         }
         stage ('Test') {
             steps {
-                sh '''#!/bin/bash
-                chmod +x system_resources_test.sh
-                ./system_resources_test.sh
-                '''
+                script {
+                    def attempts = 3
+                    def interval = 60  // seconds
+                    while (attempts > 0) {
+                        try {
+                            sh '''#!/bin/bash
+                            chmod +x system_resources_test.sh
+                            ./system_resources_test.sh
+                            '''
+                            break  // If successful, exit the loop
+                        } catch (Exception e) {
+                            attempts--
+                            if (attempts == 0) {
+                                error "Resource test failed after 3 attempts"
+                            }
+                            echo "Test failed. Retrying in 60 seconds..."
+                            sleep interval
+                        }
+                    }
+                }
             }
+        }
+    }
+    post {
+        always {
+            cleanWs()  // Clean up workspace after build
         }
     }
 }
