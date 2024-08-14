@@ -13,9 +13,10 @@ mem_usage=$(free | awk '/Mem/{printf("%.2f", $3/$2*100)}')
 disk_usage=$(df -h / | awk '/\// {print $(NF-1)}' | sed 's/%//')
 
 # Thresholds to set limit on usage
-cpu_threshold=80
-mem_threshold=80
-disk_threshold=80
+# NOTE: In a real world scenario, these would be around 60-70. But we're dealing with a t2.micro for this workload.
+cpu_threshold=90
+mem_threshold=90
+disk_threshold=90
 
 # Initialize an array to store resources that exceed the threshold
 exceeded_resources=()
