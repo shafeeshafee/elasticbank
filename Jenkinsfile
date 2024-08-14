@@ -44,7 +44,7 @@ pipeline {
             steps {
                 sh '''#!/bin/bash
                 source venv/bin/activate
-                eb create [enter-name-of-environment-here] --single
+                eb create elasticbank --single
                 '''
             }
         }
