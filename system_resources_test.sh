@@ -2,10 +2,8 @@
 
 # function to get CPU usage using /proc/stat for better accuracy
 get_cpu_usage() {
-    local cpu_usage
-    cpu_usage=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1) "%"; }' \
-        <(grep 'cpu ' /proc/stat) <(sleep 1; grep 'cpu ' /proc/stat))
-    echo "${cpu_usage%.*}"
+    awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print int(($2+$4-u1) * 100 / (t-t1))}' \
+        <(grep 'cpu ' /proc/stat) <(sleep 1; grep 'cpu ' /proc/stat)
 }
 
 # Memory
@@ -29,7 +27,8 @@ if (( cpu_usage > cpu_threshold )); then
 fi
 
 # Check memory
-if (( $(echo "$mem_usage > $mem_threshold" | bc -l) )); then
+mem_usage_int=${mem_usage%.*}
+if (( mem_usage_int > mem_threshold )); then
     exceeded_resources+=("Memory (${mem_usage}%)")
 fi
 
@@ -40,7 +39,7 @@ fi
 
 # Function to log results
 log_results() {
-    echo "$(date): $1" >> /var/log/system_resources_test.log
+    echo "$(date): $1" >> /tmp/system_resources_test.log
 }
 
 # Check if any resources go out their threshold bounds
