@@ -1,8 +1,9 @@
 pipeline {
     agent any
     options {
-        timeout(time: 10, unit: 'MINUTES')  // set a timeout for the entire pipeline
-        disableConcurrentBuilds()  // prevent concurrent builds of the same job
+        timeout(time: 10, unit: 'MINUTES')  // Set a timeout for the entire pipeline
+        disableConcurrentBuilds()  // Prevent concurrent builds of the same job
+        buildDiscarder(logRotator(numToKeepStr: '5'))  // Keep only the last 5 builds
     }
     stages {
         stage ('Build') {
@@ -38,11 +39,6 @@ pipeline {
                     }
                 }
             }
-        }
-    }
-    post {
-        always {
-            cleanWs()  // Clean up workspace after build
         }
     }
 }
