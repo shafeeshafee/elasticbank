@@ -41,6 +41,12 @@ ElasticBank is a retail bank application. The purpose of this project is to depl
 
 - Jenkins running extremely slowly on the t2.micro instance was another issue. Since a t2.micro is the lowest specs an instance can have in terms of resource allocation, Jenkins can be taxing on it. With the help of a colleague, I updated `/var/lib/jenkins/jenkins.model.JenkinsLocationConfiguration.xml` with the latest IP, then restarted the Jenkins service. Things ran a bit better after doing this.
 
+## Happy Retail Bank App
+
+#### After troubleshooting errors, the retail bank is up and deployed.
+
+![Screenshot of Bank App in Action on Elastic Beanstalk](/static/images/for-readme/retail_bank_app.png)
+
 ## How CICD Pipeline Increases Business Efficiency
 
 Using a deploy stage in the CICD pipeline increases business efficiency by:
