@@ -4,7 +4,7 @@ ElasticBank is a retail bank application. The purpose of this project is to depl
 
 ## Systems Overview
 
-![System Design Diagram](/static/images/for-readme/sys_diagram.png)
+![System Design Diagram Updated](/static/images/for-readme/sys_diagram.png)
 
 ## Steps Taken:
 
