@@ -1,71 +1,79 @@
 ## Purpose
 
-ElasticBank is a retail bank application. The purpose of this project is to deploy this mock bank app to the cloud using AWS services while maintaining a fully automated CI/CD pipeline. The goal is to make the deployment process more streamlined and reduce manual human intervention.
+ElasticBank is a retail banking application designed to simulate the operations of a traditional bank. The objective of this project is to deploy this mock banking application to the cloud utilizing Amazon Web Services (AWS) while maintaining a fully automated Continuous Integration/Continuous Deployment (CI/CD) pipeline. The primary goal is to streamline the deployment process, minimize manual human intervention, and enhance operational efficiency.
 
 ## Systems Overview
 
 ![System Design Diagram Updated](/static/images/for-readme/sys_diagram.png)
 
-## Steps Taken:
+## Steps Taken
 
-#### Here's what I did at a high level:
+#### High-Level Overview of Actions:
 
-1. Set up a GitHub repository for the project and cloned the main bank application code.
-2. Created AWS access keys for CLI access and launched an EC2 instance (t2.micro) for the Jenkins server.
-3. Created a security group to allow ports 22 for SSH and 80 for HTTP.
-4. Installed Jenkins on the EC2 instance and set up a multi-branch pipeline connected to the GitHub repository.
-5. Created a `system_resources_test.sh` script to monitor CPU, memory, and disk usage with error handling and descriptive messages for resource usage.
-6. Installed and configured AWS CLI on the Jenkins server and set up AWS Elastic Beanstalk CLI.
-7. Added a deploy stage to the Jenkinsfile for Elastic Beanstalk deployment.
+1. Established a GitHub repository for the project and cloned the primary banking application codebase.
+2. Generated AWS access keys for Command Line Interface (CLI) access and launched an EC2 instance (t2.micro) to serve as the Jenkins server.
+3. Configured a security group to permit traffic on ports 22 (SSH) and 80 (HTTP).
+4. Installed Jenkins on the EC2 instance and configured a multi-branch pipeline integrated with the GitHub repository.
+5. Developed a `system_resources_test.sh` script to monitor CPU, memory, and disk usage, incorporating error handling and descriptive messages for resource utilization.
+6. Installed and configured the AWS CLI on the Jenkins server and set up the AWS Elastic Beanstalk CLI.
+7. Integrated a deployment stage into the Jenkinsfile for Elastic Beanstalk deployment.
 8. Successfully deployed the application to AWS Elastic Beanstalk.
 
-## Issues Around Optimization During The Process
+## Issues Encountered During Optimization
 
-#### Jenkins Errors:
+### Jenkins Errors:
 
-- I had a minor hiccup where my initial builds were failing. Checked Jenkins build logs to identify the cause of the failure, showed Python 3.7 was missing. Installed Python 3.7 and its virtual environment package on the EC2 instance using `sudo apt install python3.7 python3.7-venv -y`.
+- **Initial Build Failures:** Encountered build failures due to the absence of Python 3.7. Reviewed Jenkins build logs to identify the issue. Resolved by installing Python 3.7 and its virtual environment package on the EC2 instance using `sudo apt install python3.7 python3.7-venv -y`.
+- **Script Naming Mismatch:** The Jenkinsfile referenced `system_resource.sh`, whereas the actual script was named differently. Renamed the script from `system_resource.sh` to `system_resources_test.sh` to align with the Jenkinsfile, ensuring successful execution.
+- **False Positives in Resource Detection:** Addressed false positives in resource usage detection by optimizing the `system_resources_test.sh` script. Replaced the `top` command with `/proc/stat` for CPU usage, eliminated the use of `bc`, implemented a `log_results` function, and added retry logic and timeouts to the Jenkins pipeline. These enhancements improved monitoring accuracy and reduced the incidence of false positives caused by temporary resource spikes during builds.
 
-- Dealt with an incorrect name of the system resources script which caused failures. In short, Jenkinsfile was looking for a specific script filename but I had named the script something else. So I renamed the script from `system_resource.sh` to `system_resources_test.sh` as per the instructions. Correcting the name ensured that Jenkins could find and execute the script.
+### Monitoring Errors:
 
-- False positives in usage detection were leading to build failures. I optimized the `system_resource.sh` script by replacing the `top` command with `/proc/stat` reading, removing `bc` usage, implementing a `log_results` function, and adding retry logic and timeouts to the Jenkins pipeline. This helps prevent false positives by improving accuracy of the actual resources it was monitoring, and reduces temporary spikes during the build itself.
+- **Memory Usage Calculation:** Initially calculated memory usage as `used memory / total memory * 100`, which provided inaccurate results. Revised the calculation to `free | awk '/Mem/{printf("%.2f", ($3-$6)/$2*100)}'`, accounting for buffer cache memory and yielding a more precise representation of memory utilization.
 
-#### Monitoring Errors:
+  ![Memory Resource Issue](/static/images/for-readme/memory_resource.png)
 
-- Writing the system resources script, I used logic that might not have gotten an accurate representation of the memory usage in our instance. My approach was initially calculating used memory / total memory * 100, which could lead to inaccurate results. To arrive at a more accurate representation of memory usage, I used `free | awk '/Mem/{printf("%.2f", ($3-$6)/$2*100)}'` - which means: used memory - buffer cache memory / total memory, multiplied by 100. The way I was doing it was used memory / total \* 100.
+  ![Jenkins Resource Failure Issue](/static/images/for-readme/resource_failure.png)
 
-![Memory Resource Issue](/static/images/for-readme/memory_resource.png)
+- **CPU Usage Reporting:** Addressed unexpectedly high CPU usage values by optimizing the monitoring script to use `/proc/stat` instead of the `top` command. This method offers a more accurate and resource-efficient means of measuring CPU usage over short intervals.
+- **Jenkins Performance on t2.micro Instance:** Noted that Jenkins was performing sluggishly on the t2.micro instance due to its limited resources. Collaborated with a colleague to update `/var/lib/jenkins/jenkins.model.JenkinsLocationConfiguration.xml` with the latest IP address and subsequently restarted the Jenkins service, resulting in improved performance.
 
-![Jenkins Resource Failure Issue](/static/images/for-readme/resource_failure.png)
+## Deployed Retail Banking Application
 
-- CPU issue reported unexpectedly high values. Resolved this as part of the overall script optimization, particularly by replacing the `top` command with `/proc/stat` reading. In essence, the `/proc/stat` method provides a more accurate and less resource-intensive way of measuring CPU usage over a short period.
+#### Post-Troubleshooting Deployment:
 
-- Jenkins running extremely slowly on the t2.micro instance was another issue. Since a t2.micro is the lowest specs an instance can have in terms of resource allocation, Jenkins can be taxing on it. With the help of a colleague, I updated `/var/lib/jenkins/jenkins.model.JenkinsLocationConfiguration.xml` with the latest IP, then restarted the Jenkins service. Things ran a bit better after doing this.
-
-## Happy Retail Bank App
-
-#### After troubleshooting errors, the retail bank is up and deployed.
+After resolving the aforementioned issues, the retail banking application was successfully deployed and is operational.
 
 ![Screenshot of Bank App in Action on Elastic Beanstalk](/static/images/for-readme/retail_bank_app.png)
 
-## How CICD Pipeline Increases Business Efficiency
+## Impact of the CI/CD Pipeline on Business Efficiency
 
-Using a deploy stage in the CICD pipeline increases business efficiency by:
+Implementing a deployment stage within the CI/CD pipeline enhances business efficiency by:
 
-1. Automating repetitive tasks, reducing human error.
-2. Enabling faster and more frequent deployments.
-3. Providing consistent and reproducible deployment processes.
-4. Allowing developers to focus on writing code rather than deployment logistics.
-5. Making it easier to rollback in case of issues.
+1. Automating repetitive tasks, thereby reducing human error.
+2. Facilitating faster and more frequent deployments.
+3. Ensuring consistent and reproducible deployment processes.
+4. Allowing developers to concentrate on code development rather than deployment logistics.
+5. Simplifying rollback procedures in the event of issues.
 
-## Potential Issues with Automating Code And What To Do
+## Potential Challenges with Automated Deployments and Mitigation Strategies
 
-1. With automated deployments, unless there are guard rails in your pipeline and/or development lifecycle that cover a lot of edge cases, there's risk of pushing untested or buggy code to production. To prevent this:
-   - have strategies to implement robust automated testing in the pipeline, including unit, integration, and security tests.
-   - use staging environments that mirror production for final testing before deployment.
-   - use automated performance testing and monitoring.
-2. Security vulnerabilities might be introduced if security checks are not properly done. CVE scanning and audits help mitigate this.
-3. Automated updates might introduce configuration drift in some cases. Have a fully fleshed out rollback strategy in case of critical issues. <sub><sup>**cough** lest we forget CrowdStrike 2024 **cough**.</sup></sub>
+1. **Risk of Deploying Untested or Buggy Code:** Without comprehensive guardrails, automated deployments may push unverified code to production.
+
+   - **Mitigation:**
+     - Implement robust automated testing within the pipeline, including unit, integration, and security tests.
+     - Utilize staging environments that mirror production for final testing before deployment.
+     - Incorporate automated performance testing and monitoring.
+
+2. **Introduction of Security Vulnerabilities:** Automated deployments may inadvertently introduce security flaws if security checks are inadequate.
+
+   - **Mitigation:**
+     - Conduct CVE scanning and regular security audits to identify and address vulnerabilities.
+
+3. **Configuration Drift:** Automated updates may lead to inconsistencies in configuration over time.
+   - **Mitigation:**
+     - Establish a comprehensive rollback strategy to revert to previous stable configurations in case of critical issues.
 
 ## Final Remarks
 
-Troubleshooting helped me realize how careful one needs to be when working with configurations, as well as how to work with limited resources (like the t2.micro). Going forward, we now have a solid foundation to refine the pipeline, add more monitoring processes, as well as security checks. Ultimately, working on this project provided valuable hands-on experience in the devops realm.
+This project highlighted the importance of configuration management and optimally allocating resources, especially when working within the limitations of a t2.micro instance. And by transitioning from manual to automated deployments, we not only streamlined the deployment process but also laid foundations for future improvements. Going forward, the CI/CD pipeline can be further enhanced by incorporating advanced monitoring techniques and stringent security checks (see the next iteration of this workload where we implement monitoring here: https://github.com/shafeeshafee/microblog_EC2_deployment). This project provided invaluable practical experience in the DevOps field, emphasizing the crucial role of automation in contemporary software deployment methodologies.
